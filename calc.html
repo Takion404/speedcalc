@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>速度计算器 - 双模式</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-style: italic;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 25px;
+            background: #f0f0f0;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+        
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .input-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+            background: #fff;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .copy-button {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            margin-top: 15px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .copy-button:hover {
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            color: white;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        
+        .result.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .error {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            color: #d8000c;
+        }
+        
+        .example {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        
+        .copy-text {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            color: #333;
+            font-size: 14px;
+            text-align: center;
+            border: 1px solid #ddd;
+            position: relative;
+        }
+        
+        #mode2Inputs {
+            display: none;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 25px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>速度计算器</h1>
+        <div class="subtitle">输入6位数字表示时间（HHMMSS格式）</div>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="switchMode(1)">模式1：计算速度</div>
+            <div class="tab" onclick="switchMode(2)">模式2：计算结束时间</div>
+        </div>
+        
+        <!-- 模式1：计算速度 -->
+        <div id="mode1Inputs">
+            <div class="input-group">
+                <label for="startTime1">起始时间</label>
+                <input type="text" id="startTime1" placeholder="例如: 143025" autocomplete="off" maxlength="6">
+                <div class="example">格式：HHMMSS（时分秒，如143025表示14:30:25）</div>
+            </div>
+            <div class="input-group">
+                <label for="endTime1">结束时间</label>
+                <input type="text" id="endTime1" placeholder="例如: 143545" autocomplete="off" maxlength="6">
+                <div class="example">格式：HHMMSS（时分秒，如143545表示14:35:45）</div>
+            </div>
+            <div class="input-group">
+                <label for="distance1">距离 (米)</label>
+                <input type="number" id="distance1" placeholder="输入距离" min="0" step="0.01">
+            </div>
+            <button onclick="calculateSpeed()">计算速度</button>
+        </div>
+        
+        <!-- 模式2：计算结束时间 -->
+        <div id="mode2Inputs">
+            <div class="input-group">
+                <label for="startTime2">起始时间</label>
+                <input type="text" id="startTime2" placeholder="例如: 143025" autocomplete="off" maxlength="6">
+                <div class="example">格式：HHMMSS（时分秒，如143025表示14:30:25）</div>
+            </div>
+            <div class="input-group">
+                <label for="distance2">距离 (米)</label>
+                <input type="number" id="distance2" placeholder="输入距离" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label for="speed2">速度 (m/s)</label>
+                <input type="number" id="speed2" placeholder="输入速度" min="0" step="0.001">
+            </div>
+            <button onclick="calculateEndTime()">计算结束时间</button>
+        </div>
+        
+        <div id="result" class="result"></div>
+        <div id="copySection" style="display: none;">
+            <div id="copyText" class="copy-text"></div>
+            <button class="copy-button" onclick="copyToClipboard()">一键复制</button>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 1;
+        
+        function switchMode(mode) {
+            currentMode = mode;
+            const mode1Inputs = document.getElementById('mode1Inputs');
+            const mode2Inputs = document.getElementById('mode2Inputs');
+            const tabs = document.querySelectorAll('.tab');
+            
+            if (mode === 1) {
+                mode1Inputs.style.display = 'block';
+                mode2Inputs.style.display = 'none';
+                tabs[0].classList.add('active');
+                tabs[1].classList.remove('active');
+            } else {
+                mode1Inputs.style.display = 'none';
+                mode2Inputs.style.display = 'block';
+                tabs[1].classList.add('active');
+                tabs[0].classList.remove('active');
+            }
+            
+            // 清除之前的结果
+            document.getElementById('result').className = 'result';
+            document.getElementById('copySection').style.display = 'none';
+        }
+        
+        function parseTime(timeStr) {
+            // 验证是否为6位数字
+            if (!/^\d{6}$/.test(timeStr)) {
+                return null;
+            }
+            
+            const hours = parseInt(timeStr.substring(0, 2));
+            const minutes = parseInt(timeStr.substring(2, 4));
+            const seconds = parseInt(timeStr.substring(4, 6));
+            
+            // 验证时间范围
+            if (hours > 23 || minutes > 59 || seconds > 59) {
+                return null;
+            }
+            
+            return { hours, minutes, seconds };
+        }
+        
+        function formatTimeFromSeconds(totalSeconds) {
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = Math.floor(totalSeconds % 60);
+            
+            return {
+                hours: hours % 24,
+                minutes: minutes,
+                seconds: seconds,
+                days: Math.floor(hours / 24)
+            };
+        }
+        
+        function calculateSpeed() {
+            const startTimeInput = document.getElementById('startTime1').value.trim();
+            const endTimeInput = document.getElementById('endTime1').value.trim();
+            const distanceInput = document.getElementById('distance1').value.trim();
+            const resultDiv = document.getElementById('result');
+            const copySection = document.getElementById('copySection');
+            const copyText = document.getElementById('copyText');
+            
+            // 隐藏之前的结果
+            resultDiv.className = 'result';
+            copySection.style.display = 'none';
+            
+            // 验证输入
+            if (!startTimeInput) {
+                showError('请输入起始时间');
+                return;
+            }
+            
+            if (!endTimeInput) {
+                showError('请输入结束时间');
+                return;
+            }
+            
+            if (!distanceInput) {
+                showError('请输入距离');
+                return;
+            }
+            
+            const distance = parseFloat(distanceInput);
+            if (isNaN(distance) || distance <= 0) {
+                showError('请输入有效的距离（必须大于0）');
+                return;
+            }
+            
+            // 解析时间
+            const startTimeParsed = parseTime(startTimeInput);
+            const endTimeParsed = parseTime(endTimeInput);
+            
+            if (!startTimeParsed) {
+                showError('起始时间格式错误，请输入6位有效数字（HHMMSS）');
+                return;
+            }
+            
+            if (!endTimeParsed) {
+                showError('结束时间格式错误，请输入6位有效数字（HHMMSS）');
+                return;
+            }
+            
+            // 创建今天的日期对象
+            const today = new Date();
+            const startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 
+                startTimeParsed.hours, startTimeParsed.minutes, startTimeParsed.seconds);
+            const endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 
+                endTimeParsed.hours, endTimeParsed.minutes, endTimeParsed.seconds);
+            
+            // 处理跨天情况（结束时间小于起始时间，假设结束时间是第二天）
+            if (endDate <= startDate) {
+                endDate.setDate(endDate.getDate() + 1);
+            }
+            
+            // 计算时间差（秒）
+            const timeDiff = (endDate - startDate) / 1000;
+            
+            if (timeDiff <= 0) {
+                showError('结束时间必须晚于起始时间');
+                return;
+            }
+            
+            // 计算速度 (m/s)
+            const speed = distance / timeDiff;
+            
+            // 计算时间差的可读格式
+            const totalSeconds = Math.floor(timeDiff);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            
+            let timeDiffStr = '';
+            if (hours > 0) {
+                timeDiffStr += `${hours}小时 `;
+            }
+            if (minutes > 0) {
+                timeDiffStr += `${minutes}分钟 `;
+            }
+            timeDiffStr += `${seconds}秒`;
+            
+            // 格式化输入时间显示
+            const startTimeFormatted = `${startTimeParsed.hours.toString().padStart(2, '0')}:${startTimeParsed.minutes.toString().padStart(2, '0')}:${startTimeParsed.seconds.toString().padStart(2, '0')}`;
+            const endTimeFormatted = `${endTimeParsed.hours.toString().padStart(2, '0')}:${endTimeParsed.minutes.toString().padStart(2, '0')}:${endTimeParsed.seconds.toString().padStart(2, '0')}`;
+            
+            // 显示结果
+            resultDiv.innerHTML = `
+                起始时间: ${startTimeFormatted}<br>
+                结束时间: ${endTimeFormatted}<br>
+                距离: ${distance} 米<br>
+                时间差: ${timeDiffStr}<br>
+                速度: <strong>${speed.toFixed(3)} m/s</strong>
+            `;
+            resultDiv.className = 'result show';
+            
+            // 显示复制区域
+            const copyContent = `${endTimeFormatted}通过，通过速度为${speed.toFixed(3)}m/s`;
+            copyText.textContent = copyContent;
+            copySection.style.display = 'block';
+        }
+        
+        function calculateEndTime() {
+            const startTimeInput = document.getElementById('startTime2').value.trim();
+            const distanceInput = document.getElementById('distance2').value.trim();
+            const speedInput = document.getElementById('speed2').value.trim();
+            const resultDiv = document.getElementById('result');
+            const copySection = document.getElementById('copySection');
+            const copyText = document.getElementById('copyText');
+            
+            // 隐藏之前的结果
+            resultDiv.className = 'result';
+            copySection.style.display = 'none';
+            
+            // 验证输入
+            if (!startTimeInput) {
+                showError('请输入起始时间');
+                return;
+            }
+            
+            if (!distanceInput) {
+                showError('请输入距离');
+                return;
+            }
+            
+            if (!speedInput) {
+                showError('请输入速度');
+                return;
+            }
+            
+            const distance = parseFloat(distanceInput);
+            const speed = parseFloat(speedInput);
+            
+            if (isNaN(distance) || distance <= 0) {
+                showError('请输入有效的距离（必须大于0）');
+                return;
+            }
+            
+            if (isNaN(speed) || speed <= 0) {
+                showError('请输入有效的速度（必须大于0）');
+                return;
+            }
+            
+            // 解析起始时间
+            const startTimeParsed = parseTime(startTimeInput);
+            if (!startTimeParsed) {
+                showError('起始时间格式错误，请输入6位有效数字（HHMMSS）');
+                return;
+            }
+            
+            // 计算所需时间（秒）
+            const timeNeeded = distance / speed;
+            
+            // 创建起始时间的Date对象
+            const today = new Date();
+            const startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 
+                startTimeParsed.hours, startTimeParsed.minutes, startTimeParsed.seconds);
+            
+            // 计算结束时间
+            const endDate = new Date(startDate.getTime() + timeNeeded * 1000);
+            
+            // 格式化时间
+            const startFormatted = `${startTimeParsed.hours.toString().padStart(2, '0')}:${startTimeParsed.minutes.toString().padStart(2, '0')}:${startTimeParsed.seconds.toString().padStart(2, '0')}`;
+            const endFormatted = `${endDate.getHours().toString().padStart(2, '0')}:${endDate.getMinutes().toString().padStart(2, '0')}:${endDate.getSeconds().toString().padStart(2, '0')}`;
+            
+            // 计算时间差的可读格式
+            const totalSeconds = Math.floor(timeNeeded);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            
+            let timeDiffStr = '';
+            if (hours > 0) {
+                timeDiffStr += `${hours}小时 `;
+            }
+            if (minutes > 0) {
+                timeDiffStr += `${minutes}分钟 `;
+            }
+            timeDiffStr += `${seconds}秒`;
+            
+            // 显示结果
+            resultDiv.innerHTML = `
+                起始时间: ${startFormatted}<br>
+                距离: ${distance} 米<br>
+                速度: ${speed.toFixed(3)} m/s<br>
+                时间差: ${timeDiffStr}<br>
+                结束时间: <strong>${endFormatted}</strong>
+            `;
+            resultDiv.className = 'result show';
+            
+            // 显示复制区域
+            const copyContent = `${endFormatted}通过，通过速度为${speed.toFixed(3)}m/s`;
+            copyText.textContent = copyContent;
+            copySection.style.display = 'block';
+        }
+        
+        function showError(message) {
+            const resultDiv = document.getElementById('result');
+            const copySection = document.getElementById('copySection');
+            resultDiv.textContent = message;
+            resultDiv.className = 'result error show';
+            copySection.style.display = 'none';
+        }
+        
+        function copyToClipboard() {
+            const copyText = document.getElementById('copyText').textContent;
+            if (!copyText) return;
+            
+            // 创建临时textarea元素
+            const textarea = document.createElement('textarea');
+            textarea.value = copyText;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            
+            // 显示复制成功提示
+            const button = event.target;
+            const originalText = button.textContent;
+            button.textContent = '已复制！';
+            setTimeout(() => {
+                button.textContent = originalText;
+            }, 2000);
+        }
+        
+        // 允许按回车键计算
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                if (currentMode === 1) {
+                    calculateSpeed();
+                } else {
+                    calculateEndTime();
+                }
+            }
+        });
+        
+        // 限制输入只允许数字（模式1）
+        document.getElementById('startTime1').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/[^0-9]/g, '');
+            if (value.length > 6) {
+                value = value.substring(0, 6);
+            }
+            e.target.value = value;
+        });
+        
+        document.getElementById('endTime1').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/[^0-9]/g, '');
+            if (value.length > 6) {
+                value = value.substring(0, 6);
+            }
+            e.target.value = value;
+        });
+        
+        // 限制输入只允许数字（模式2）
+        document.getElementById('startTime2').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/[^0-9]/g, '');
+            if (value.length > 6) {
+                value = value.substring(0, 6);
+            }
+            e.target.value = value;
+        });
+    </script>
+</body>
+</html>
+
